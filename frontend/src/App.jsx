@@ -1,9 +1,12 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 
+const API = "https://geniloki-academy.onrender.com/api";
+
 export default function App() {
 
   const [page, setPage] = useState("games");
+
   const [games, setGames] = useState([]);
   const [lessons, setLessons] = useState([]);
 
@@ -13,20 +16,22 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("todos");
 
-  // CARREGA JOGOS
+  // CARREGAR DADOS
   useEffect(() => {
 
-    fetch("https://geniloki-academy.onrender.com/api/games")
+    fetch(`${API}/games`)
       .then((res) => res.json())
-      .then((data) => {
-        console.log(data);
-        setGames(data);
-      })
+      .then((data) => setGames(data))
+      .catch((err) => console.log(err));
+
+    fetch(`${API}/lessons`)
+      .then((res) => res.json())
+      .then((data) => setLessons(data))
       .catch((err) => console.log(err));
 
   }, []);
 
-  // NORMALIZA TEXTO
+  // NORMALIZAR TEXTO
   const normalize = (text) => {
     return String(text || "")
       .toLowerCase()
@@ -55,15 +60,22 @@ export default function App() {
   });
 
   // ADICIONAR AULA
-  const addLesson = () => {
+  const addLesson = async () => {
 
     if (!title || !description) return;
 
-    const newLesson = {
-      id: Date.now(),
-      titulo: title,
-      descricao: description
-    };
+    const response = await fetch(`${API}/lessons`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        titulo: title,
+        descricao: description
+      })
+    });
+
+    const newLesson = await response.json();
 
     setLessons([newLesson, ...lessons]);
 
@@ -72,8 +84,15 @@ export default function App() {
   };
 
   // APAGAR AULA
-  const deleteLesson = (id) => {
-    setLessons(lessons.filter((l) => l.id !== id));
+  const deleteLesson = async (id) => {
+
+    await fetch(`${API}/lessons/${id}`, {
+      method: "DELETE"
+    });
+
+    setLessons(
+      lessons.filter((l) => l.id !== id)
+    );
   };
 
   return (
@@ -81,8 +100,6 @@ export default function App() {
 
       {/* HERO */}
       <div className="hero">
-
-       
 
         <h1 className="title">
           genilo<span className="orange">ki</span>
@@ -139,51 +156,34 @@ export default function App() {
               <option value="avancado">
                 Avançado
               </option>
+
             </select>
 
           </div>
 
           <div className="grid">
 
-            {filteredGames.length > 0 ? (
+            {filteredGames.map((game, i) => (
 
-              filteredGames.map((game, i) => (
+              <div className="card" key={i}>
 
-                <div className="card" key={i}>
-
-                  <div className="badge">
-                    {game.nivel}
-                  </div>
-
-                  <h2>{game.nome}</h2>
-
-                  <div className="info">
-                    <span>⏱ {game.duracao}</span>
-                  </div>
-
-                  <p className="description">
-                    {game.descricao}
-                  </p>
-
+                <div className="badge">
+                  {game.nivel}
                 </div>
 
-              ))
+                <h2>{game.nome}</h2>
 
-            ) : (
+                <div className="info">
+                  ⏱ {game.duracao}
+                </div>
 
-              <div
-                style={{
-                  width: "100%",
-                  padding: "40px",
-                  textAlign: "center",
-                  fontSize: "20px",
-                  opacity: 0.8
-                }}
-              >
-                Nenhum jogo encontrado.
+                <p className="description">
+                  {game.descricao}
+                </p>
+
               </div>
 
-            )}
+            ))}
 
           </div>
 
