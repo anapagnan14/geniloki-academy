@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-import gameRoutes from "./routes/Games.js";
+import gameRoutes from "./routes/games.js";
 
 const app = express();
 
