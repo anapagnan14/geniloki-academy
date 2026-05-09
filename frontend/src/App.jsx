@@ -16,7 +16,7 @@ export default function App() {
   // CARREGA JOGOS
   useEffect(() => {
 
-    fetch("http://localhost:3000/api/games")
+    fetch("https://geniloki-academy.onrender.com/api/games")
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
