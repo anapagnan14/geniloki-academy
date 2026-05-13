@@ -133,12 +133,7 @@ export default function App() {
       {/* HERO */}
       <div className="hero">
 
-        <img
-          src="/logo.png"
-          alt="Geniloki"
-          className="logo"
-        />
-
+    
         <h1 className="title">
           genilo<span className="orange">ki</span>
         </h1>
