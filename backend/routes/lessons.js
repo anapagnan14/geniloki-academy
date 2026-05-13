@@ -3,11 +3,7 @@ import fs from "fs";
 
 const router = express.Router();
 
-const filePath = new URL(
-  "../data/lessons.json",
-  import.meta.url
-);
-
+const filePath = "./data/lessons.json";
 // PEGAR AULAS
 router.get("/", (req, res) => {
 
