@@ -3,58 +3,103 @@ import fs from "fs";
 
 const router = express.Router();
 
-const filePath = "./data/lessons.json";
+const filePath = new URL(
+  "../data/lessons.json",
+  import.meta.url
+);
 
 // PEGAR AULAS
 router.get("/", (req, res) => {
 
-  const data = fs.readFileSync(filePath, "utf-8");
+  try {
 
-  res.json(JSON.parse(data));
+    const data = fs.readFileSync(
+      filePath,
+      "utf-8"
+    );
+
+    res.json(JSON.parse(data));
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: "Erro ao ler aulas"
+    });
+
+  }
+
 });
 
 // SALVAR AULA
 router.post("/", (req, res) => {
 
-  const lessons = JSON.parse(
-    fs.readFileSync(filePath, "utf-8")
-  );
+  try {
 
-  const newLesson = {
-    id: Date.now(),
-    titulo: req.body.titulo,
-    descricao: req.body.descricao
-  };
+    const lessons = JSON.parse(
+      fs.readFileSync(filePath, "utf-8")
+    );
 
-  lessons.unshift(newLesson);
+    const newLesson = {
+      id: Date.now(),
+      titulo: req.body.titulo,
+      descricao: req.body.descricao
+    };
 
-  fs.writeFileSync(
-    filePath,
-    JSON.stringify(lessons, null, 2)
-  );
+    lessons.unshift(newLesson);
 
-  res.json(newLesson);
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify(lessons, null, 2)
+    );
+
+    res.json(newLesson);
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: "Erro ao salvar aula"
+    });
+
+  }
+
 });
 
 // APAGAR AULA
 router.delete("/:id", (req, res) => {
 
-  const lessons = JSON.parse(
-    fs.readFileSync(filePath, "utf-8")
-  );
+  try {
 
-  const updated = lessons.filter(
-    (l) => l.id != req.params.id
-  );
+    const lessons = JSON.parse(
+      fs.readFileSync(filePath, "utf-8")
+    );
 
-  fs.writeFileSync(
-    filePath,
-    JSON.stringify(updated, null, 2)
-  );
+    const updated = lessons.filter(
+      (l) => l.id != req.params.id
+    );
 
-  res.json({
-    success: true
-  });
+    fs.writeFileSync(
+      filePath,
+      JSON.stringify(updated, null, 2)
+    );
+
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+
+    console.log(err);
+
+    res.status(500).json({
+      error: "Erro ao apagar aula"
+    });
+
+  }
+
 });
 
 export default router;
