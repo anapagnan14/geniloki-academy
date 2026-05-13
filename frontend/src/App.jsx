@@ -1,8 +1,6 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 
-const API = "https://geniloki-academy.onrender.com/api";
-
 export default function App() {
 
   const [page, setPage] = useState("games");
@@ -16,21 +14,6 @@ export default function App() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("todos");
 
-  // CARREGAR DADOS
-  useEffect(() => {
-
-    fetch(`${API}/games`)
-      .then((res) => res.json())
-      .then((data) => setGames(data))
-      .catch((err) => console.log(err));
-
-    fetch(`${API}/lessons`)
-      .then((res) => res.json())
-      .then((data) => setLessons(data))
-      .catch((err) => console.log(err));
-
-  }, []);
-
   // NORMALIZAR TEXTO
   const normalize = (text) => {
     return String(text || "")
@@ -40,7 +23,28 @@ export default function App() {
       .trim();
   };
 
-  // FILTRO
+  // CARREGAR DADOS
+  useEffect(() => {
+
+    // GAMES
+    fetch("https://geniloki-academy.onrender.com/api/games")
+      .then((res) => res.json())
+      .then((data) => {
+        setGames(data);
+      })
+      .catch((err) => console.log(err));
+
+    // LESSONS
+    fetch("https://geniloki-academy.onrender.com/api/lessons")
+      .then((res) => res.json())
+      .then((data) => {
+        setLessons(data);
+      })
+      .catch((err) => console.log(err));
+
+  }, []);
+
+  // FILTRO GAMES
   const filteredGames = games.filter((game) => {
 
     const gameName = normalize(game.nome);
@@ -57,65 +61,103 @@ export default function App() {
       gameLevel.includes(currentFilter);
 
     return matchSearch && matchFilter;
+
   });
 
-  // ADICIONAR AULA
+  // SALVAR AULA
   const addLesson = async () => {
 
     if (!title || !description) return;
 
-    const response = await fetch(`${API}/lessons`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        titulo: title,
-        descricao: description
-      })
-    });
+    const newLesson = {
+      titulo: title,
+      descricao: description
+    };
 
-    const newLesson = await response.json();
+    try {
 
-    setLessons([newLesson, ...lessons]);
+      const response = await fetch(
+        "https://geniloki-academy.onrender.com/api/lessons",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(newLesson)
+        }
+      );
 
-    setTitle("");
-    setDescription("");
+      const savedLesson = await response.json();
+
+      setLessons([savedLesson, ...lessons]);
+
+      setTitle("");
+      setDescription("");
+
+    } catch (err) {
+
+      console.log(err);
+
+    }
+
   };
 
   // APAGAR AULA
   const deleteLesson = async (id) => {
 
-    await fetch(`${API}/lessons/${id}`, {
-      method: "DELETE"
-    });
+    try {
 
-    setLessons(
-      lessons.filter((l) => l.id !== id)
-    );
+      await fetch(
+        `https://geniloki-academy.onrender.com/api/lessons/${id}`,
+        {
+          method: "DELETE"
+        }
+      );
+
+      setLessons(
+        lessons.filter((lesson) => lesson.id !== id)
+      );
+
+    } catch (err) {
+
+      console.log(err);
+
+    }
+
   };
 
   return (
+
     <div className="app">
 
       {/* HERO */}
       <div className="hero">
+
+        <img
+          src="/logo.png"
+          alt="Geniloki"
+          className="logo"
+        />
 
         <h1 className="title">
           genilo<span className="orange">ki</span>
         </h1>
 
         <p className="subtitle">
-          Board Games + English Learning
+          Board Games & Teaching Inspiration
         </p>
 
         <div className="nav">
 
-          <button onClick={() => setPage("games")}>
+          <button
+            onClick={() => setPage("games")}
+          >
             Jogos
           </button>
 
-          <button onClick={() => setPage("teachers")}>
+          <button
+            onClick={() => setPage("teachers")}
+          >
             Teachers
           </button>
 
@@ -125,6 +167,7 @@ export default function App() {
 
       {/* GAMES */}
       {page === "games" && (
+
         <>
 
           <div className="searchArea">
@@ -133,14 +176,19 @@ export default function App() {
               className="search"
               placeholder="Pesquisar jogo..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) =>
+                setSearch(e.target.value)
+              }
             />
 
             <select
               className="select"
               value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              onChange={(e) =>
+                setFilter(e.target.value)
+              }
             >
+
               <option value="todos">
                 Todos níveis
               </option>
@@ -163,31 +211,47 @@ export default function App() {
 
           <div className="grid">
 
-            {filteredGames.map((game, i) => (
+            {filteredGames.length > 0 ? (
 
-              <div className="card" key={i}>
+              filteredGames.map((game, i) => (
 
-                <div className="badge">
-                  {game.nivel}
+                <div
+                  className="card"
+                  key={i}
+                >
+
+                  <div className="badge">
+                    {game.nivel}
+                  </div>
+
+                  <h2>
+                    {game.nome}
+                  </h2>
+
+                  <div className="info">
+                    ⏱ {game.duracao}
+                  </div>
+
+                  <p className="description">
+                    {game.descricao}
+                  </p>
+
                 </div>
 
-                <h2>{game.nome}</h2>
+              ))
 
-                <div className="info">
-                  ⏱ {game.duracao}
-                </div>
+            ) : (
 
-                <p className="description">
-                  {game.descricao}
-                </p>
-
+              <div className="empty">
+                Nenhum jogo encontrado.
               </div>
 
-            ))}
+            )}
 
           </div>
 
         </>
+
       )}
 
       {/* TEACHERS */}
@@ -198,42 +262,61 @@ export default function App() {
           <input
             placeholder="Nome da aula"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) =>
+              setTitle(e.target.value)
+            }
           />
 
           <textarea
             placeholder="Descreva sua ideia de aula..."
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) =>
+              setDescription(e.target.value)
+            }
           />
 
           <button onClick={addLesson}>
             Salvar Aula
           </button>
 
-          {lessons.map((lesson) => (
+          <div className="lessonGrid">
 
-            <div className="lessonCard" key={lesson.id}>
+            {lessons.map((lesson) => (
 
-              <h3>{lesson.titulo}</h3>
-
-              <p>{lesson.descricao}</p>
-
-              <button
-                className="deleteBtn"
-                onClick={() => deleteLesson(lesson.id)}
+              <div
+                className="lessonCard"
+                key={lesson.id}
               >
-                Apagar
-              </button>
 
-            </div>
+                <h3>
+                  {lesson.titulo}
+                </h3>
 
-          ))}
+                <p>
+                  {lesson.descricao}
+                </p>
+
+                <button
+                  className="deleteBtn"
+                  onClick={() =>
+                    deleteLesson(lesson.id)
+                  }
+                >
+                  Apagar
+                </button>
+
+              </div>
+
+            ))}
+
+          </div>
 
         </div>
 
       )}
 
     </div>
+
   );
+
 }
